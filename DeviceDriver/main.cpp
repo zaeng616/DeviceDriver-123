@@ -15,6 +15,21 @@ TEST(DeviceDriver, ReadFromHW) {
 	EXPECT_EQ(0, data);
 }
 
+TEST(DeviceDriver, ReadException) {
+	FlashMock mock;
+	EXPECT_CALL(mock, read(0xFF))
+		.WillOnce(testing::Return(0))
+		.WillOnce(testing::Return(1));
+	DeviceDriver driver{ &mock };
+	try {
+		int data = driver.read(0xFF);
+		FAIL();
+	}
+	catch (CustomException& e) {
+		EXPECT_EQ(strcmp(e.what(), "ReadFailException"), 0);
+	}
+}
+
 TEST(DeviceDriver, WriteToHW) {
 	FlashMock mock;
 	EXPECT_CALL(mock, read(0xFF)).Times(5)
@@ -41,7 +56,7 @@ TEST(DeviceDriver, WriteException) {
 		FAIL();
 	}
 	catch (CustomException& e) {
-		std::cout << e.what() << std::endl;
+		EXPECT_EQ(strcmp(e.what(), "WriteFailException"), 0);
 	}
 }
 
